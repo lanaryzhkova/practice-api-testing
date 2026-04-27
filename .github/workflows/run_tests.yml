@@ -1,0 +1,67 @@
+name: Run API Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout homework repository (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: homework
+
+      - name: Clone test-service repository
+        run: |
+          git clone https://github.com/sun6r0/test-service.git test-service
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          cd homework
+          pip install -r requirements.txt
+
+      - name: Start services with Docker Compose
+        run: |
+          cd test-service
+          docker compose up -d --build
+          sleep 20  # даём время на запуск контейнеров и миграции
+
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s -f http://localhost:8080/api/time >/dev/null; then
+              echo "API is ready"
+              break
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 3
+          done
+
+      - name: Run tests
+        run: |
+          cd homework
+          python -m pytest tests/ -v --alluredir=allure-results
+
+      - name: Upload allure results (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: homework/allure-results/
+
+      - name: Stop services
+        if: always()
+        run: |
+          cd test-service
+          docker compose down
