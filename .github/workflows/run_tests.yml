@@ -49,6 +49,8 @@ jobs:
           done
 
       - name: Run tests
+        env:
+            BASE_URL: http://localhost:8080
         run: |
           cd api-tests
           python -m pytest tests/ -v --alluredir=allure-results
