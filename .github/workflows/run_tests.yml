@@ -2,9 +2,9 @@ name: Run API Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, api-tests]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, api-tests]
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout homework repository (this repo)
         uses: actions/checkout@v4
         with:
-          path: homework
+          path: api-tests
 
       - name: Clone test-service repository
         run: |
