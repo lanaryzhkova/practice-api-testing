@@ -1,0 +1,98 @@
+from api.requests.base_requests_api import BaseApi
+from data.data_api import BaseApiLocators
+from typing import List
+from api.requests.model import Entity
+
+
+class ApiHelper(BaseApi):
+    def __init__(self):
+        super().__init__()
+        self.locators = BaseApiLocators()
+
+    def get_entity(self, entity_id: int) -> Entity:
+        """Получение сущности по id"""
+        response = self.request_get(self.locators.URL_get.format(entity_id))
+        if response.status_code != 200:
+            raise Exception(
+                f"Ошибка получения сущности {entity_id}. Статус: {response.status_code}, "
+                f"Ответ: {response.text}"
+            )
+        try:
+            data = response.json()
+        except ValueError as e:
+            raise Exception(f"Ответ не является валидным JSON: {response.text}") from e
+        if not isinstance(data, dict):
+            raise Exception(f"Ожидался JSON объект, получен: {type(data).__name__}: {data}")
+        return Entity(**data)
+
+    def get_all_entities(self) -> List[Entity]:
+        """Получение всех сущностей"""
+        response = self.request_get(self.locators.URL_get_all)
+        if response.status_code != 200:
+            raise Exception(
+                f"Ошибка получения списка сущностей. Статус: {response.status_code}, "
+                f"Ответ: {response.text}"
+            )
+        try:
+            data = response.json()
+        except ValueError as e:
+            raise Exception(f"Ответ не является валидным JSON: {response.text}") from e
+        
+        if isinstance(data, dict) and 'entity' in data:
+            entities_list = data['entity']
+        elif isinstance(data, list):
+            entities_list = data
+        else:
+            raise Exception(f"Неожиданная структура ответа: {type(data).__name__}: {data}")
+        
+        if not isinstance(entities_list, list):
+            raise Exception(f"Ожидался JSON массив, получен: {type(entities_list).__name__}: {entities_list}")
+        
+        return [Entity(**item) for item in entities_list]
+
+    def create_entity(self, entity_data: dict) -> Entity:
+        response = self.request_post(
+            self.locators.URL_create,
+            json=entity_data
+        )
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Ошибка создания сущности. Статус: {response.status_code}, "
+                f"Ответ: {response.text}"
+            )
+
+        if not response.text:
+            raise Exception("Сервер вернул пустой ответ")
+
+        try:
+            entity_id = int(response.text.strip())
+        except ValueError:
+            try:
+                data = response.json()
+                if isinstance(data, dict):
+                    return Entity(**data)
+                else:
+                    entity_id = int(data)
+            except (ValueError, TypeError):
+                raise Exception(f"Неожиданный ответ от сервера: {response.text}")
+
+        return self.get_entity(entity_id)
+
+    def update_entity(self, entity_id: int, entity_data: dict) -> int:
+        """Обновление сущности (возвращает статус код)"""
+        response = self.request_patch(
+            self.locators.URL_update.format(entity_id),
+            json=entity_data
+        )
+        if response.status_code != 204:
+            raise Exception(
+                f"Ошибка обновления сущности. Статус: {response.status_code}, "
+                f"Ответ: {response.text}"
+            )
+        return response.status_code
+
+    def delete_entity(self, entity_id: int) -> int:
+        """Удаление сущности (возвращает статус успеха)"""
+        response = self.request_delete(self.locators.URL_delete.format(entity_id))
+        return response.status_code
