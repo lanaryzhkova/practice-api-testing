@@ -2,10 +2,10 @@ name: Run API Tests
 
 on:
   push:
-    branches: [ main, api-tests]
-  pull_request:
-    branches: [ main, api-tests]
-  workflow_dispatch:
+    branches: [ api-tests ]
+
+permissions:
+  contents: write
 
 jobs:
   test:
