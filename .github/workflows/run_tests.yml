@@ -63,7 +63,7 @@ jobs:
           tar -xzf allure.tgz
           sudo mv allure-2.29.0 /opt/allure
           sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
-  
+          cd api-tests
           allure generate allure-results --clean -o allure-report
 
       - name: Deploy to GitHub Pages
