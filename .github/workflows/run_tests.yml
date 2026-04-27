@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          cd homework
+          cd api-tests
           pip install -r requirements.txt
 
       - name: Start services with Docker Compose
@@ -50,7 +50,7 @@ jobs:
 
       - name: Run tests
         run: |
-          cd homework
+          cd api-tests
           python -m pytest tests/ -v --alluredir=allure-results
 
       - name: Upload allure results (optional)
@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: homework/allure-results/
+          path: api-tests/allure-results/
 
       - name: Stop services
         if: always()
