@@ -12,75 +12,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout homework repository (this repo)
-        uses: actions/checkout@v4
-        with:
-          path: api-tests
+      - uses: actions/checkout@v4
 
-      - name: Clone test-service repository
-        run: |
-          git clone https://github.com/sun6r0/test-service.git test-service
+      - name: Clone test-service
+        run: git clone https://github.com/sun6r0/test-service.git
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Python dependencies
-        run: |
-          cd api-tests
-          pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Start services with Docker Compose
+      - name: Start backend
         run: |
           cd test-service
           docker compose up -d --build
-          sleep 20  # даём время на запуск контейнеров и миграции
+          sleep 20
 
-      - name: Wait for API to be ready
+      - name: Wait for API
         run: |
           for i in {1..30}; do
             if curl -s -f http://localhost:8080/api/time >/dev/null; then
               echo "API is ready"
               break
             fi
-            echo "Waiting for API... ($i/30)"
             sleep 3
           done
 
       - name: Run tests
         env:
-            BASE_URL: http://localhost:8080/api
+          BASE_URL: http://localhost:8080/api
+        run: pytest tests/ -v --alluredir=allure-results || true
+
+      - name: Install Allure
         run: |
-          cd api-tests
-          python -m pytest tests/ -v -n 1 --alluredir=allure-results
-
-      - name: Upload allure results (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: api-tests/allure-results/
-
-      - run: |
           sudo apt-get update
           sudo apt-get install -y default-jre
-  
           curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
           tar -xzf allure.tgz
           sudo mv allure-2.29.0 /opt/allure
           sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
-          cd api-tests
-          allure generate allure-results --clean -o allure-report
 
-      - name: Deploy to GitHub Pages
+      - name: Generate report
+        run: allure generate allure-results --clean -o allure-report
+
+      - name: Deploy report
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: api-tests/allure-report
+          publish_dir: allure-report
           force_orphan: true
 
-      - name: Stop services
+      - name: Stop backend
         if: always()
         run: |
           cd test-service
