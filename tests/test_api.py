@@ -11,21 +11,24 @@ def api_helper() -> ApiHelper:
     helper = ApiHelper()
     return helper
 
+@pytest.fixture
+def create_entity_data():
+    """Фикстура для генерации данных создания сущности."""
+    return {
+        "title": randomString(),
+        "verified": randomBoolean(),
+        "important_numbers": randomIntList(),
+        "addition": {
+            "additional_info": randomString(),
+            "additional_number": randomInt()
+        }
+    }
 
 @pytest.fixture
-def create_entity(api_helper: ApiHelper):
+def create_entity(api_helper: ApiHelper, create_entity_data):
     """Фикстура создаёт сущность и возвращает её"""
-    CREATE_ENTITY_DATA = {
-    "title": randomString(),
-    "verified": randomBoolean(),
-    "important_numbers": randomIntList(),
-    "addition": {
-        "additional_info": randomString(),
-        "additional_number": randomInt()
-    }
-}
     with allure.step("Предусловие: создание сущности"):
-        entity = api_helper.create_entity(CREATE_ENTITY_DATA)
+        entity = api_helper.create_entity(create_entity_data)
 
     yield entity
 
@@ -39,18 +42,18 @@ class TestEntityApiPositive:
     """Тесты для сущностей"""
     @allure.title("Создание сущности")
     @allure.description("Проверка успешного создания сущности с валидными данными")
-    def test_create_entity(self, api_helper: ApiHelper):
+    def test_create_entity(self, api_helper: ApiHelper, create_entity_data):
         """Функция тестирования создания сущности"""
         with allure.step("Отправка запроса на создание сущности"):
-            entity = api_helper.create_entity
+            entity = api_helper.create_entity(create_entity_data)
         
         with allure.step("Проверка ответа"):
             assert isinstance(entity, Entity)
-            assert entity.title == CREATE_ENTITY_DATA["title"]
-            assert entity.verified == CREATE_ENTITY_DATA["verified"]
-            assert entity.important_numbers == CREATE_ENTITY_DATA["important_numbers"]
-            assert entity.addition.additional_info == CREATE_ENTITY_DATA["addition"]["additional_info"]
-            assert entity.addition.additional_number == CREATE_ENTITY_DATA["addition"]["additional_number"]
+            assert entity.title == create_entity_data["title"]
+            assert entity.verified == create_entity_data["verified"]
+            assert entity.important_numbers == create_entity_data["important_numbers"]
+            assert entity.addition.additional_info == create_entity_data["addition"]["additional_info"]
+            assert entity.addition.additional_number == create_entity_data["addition"]["additional_number"]
             assert entity.id > 0
 
     @allure.title("Получение сущности по ID")
@@ -116,20 +119,10 @@ class TestEntityApiPositive:
 
     @allure.title("Удаление сущности")
     @allure.description("Проверка успешного удаления сущности")
-    def test_delete_entity(self, api_helper: ApiHelper):
+    def test_delete_entity(self, api_helper: ApiHelper, create_entity_data):
         """Функция тестирования удаления сущности"""
-
-        CREATE_ENTITY_DATA = {
-            "title": randomString(),
-            "verified": True,
-            "important_numbers": randomIntList(),
-            "addition": {
-                "additional_info": randomString(),
-                "additional_number": randomInt()
-            }
-        }
         
-        entity = api_helper.create_entity(CREATE_ENTITY_DATA)
+        entity = api_helper.create_entity(create_entity_data)
         entity_id = entity.id
         
         with allure.step(f"Удаление сущности с ID {entity_id}"):
