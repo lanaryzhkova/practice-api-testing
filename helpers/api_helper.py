@@ -60,7 +60,7 @@ class ApiHelper(BaseApi):
             json=entity_data
         )
 
-        self._check_status_code(response, 201)
+        self._check_status_code(response, 200)
         if not response.text:
             raise UnexpectedResponseError("Сервер вернул пустой ответ")
 
