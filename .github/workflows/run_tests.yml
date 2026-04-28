@@ -43,7 +43,9 @@ jobs:
       - name: Run tests
         env:
           BASE_URL: http://localhost:8080/api
-        run: pytest tests/ -v --alluredir=allure-results || true
+        run: |
+          cd api-tests
+          pytest tests/ -v --alluredir=allure-results || true
 
       - name: Install Allure
         run: |
@@ -55,13 +57,15 @@ jobs:
           sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
 
       - name: Generate report
-        run: allure generate allure-results --clean -o allure-report
+        run: |
+          cd api-tests
+          allure generate allure-results -o allure-report
 
       - name: Deploy report
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          publish_dir: publish_dir: api-tests/allure-report
           force_orphan: true
 
       - name: Stop backend
