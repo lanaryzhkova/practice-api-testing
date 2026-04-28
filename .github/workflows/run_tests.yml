@@ -50,7 +50,7 @@ jobs:
         env:
           BASE_URL: http://localhost:8080/api
         run: |
-          pytest -n 2 --alluredir=allure-results || true
+          pytest -n 2 --alluredir=allure-results
 
       - name: Check allure-results
         run: |
