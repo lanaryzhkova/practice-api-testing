@@ -12,3 +12,7 @@ def randomIntList():
 def randomInt():
     """Генерирует случайное число"""
     return random.randint(1, 100)
+
+def randomBoolean():
+    """Генерирует случайное булево значение"""
+    return random.choice([True, False])
