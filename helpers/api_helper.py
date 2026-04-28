@@ -55,8 +55,6 @@ class ApiHelper(BaseApi):
         return [Entity(**item) for item in entities_list]
 
     def create_entity(self, entity_data: dict) -> Entity:
-        print(self.locators.URL_create)
-        print(json.dumps(entity_data))
         response = self.request_post(
             self.locators.URL_create,
             json=entity_data
