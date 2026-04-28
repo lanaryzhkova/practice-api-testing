@@ -1,0 +1,6 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"passed","Tue Apr 28 09:19:11 UTC 2026","Tue Apr 28 09:19:11 UTC 2026","3","tests","API тесты для сущностей","TestEntityApiPositive","","","Получение всех сущностей","Проверка успешного получения списка всех сущностей"
+"passed","Tue Apr 28 09:19:11 UTC 2026","Tue Apr 28 09:19:11 UTC 2026","16","tests","API тесты для сущностей","TestEntityApiPositive","","","Создание сущности","Проверка успешного создания сущности с валидными данными"
+"passed","Tue Apr 28 09:19:11 UTC 2026","Tue Apr 28 09:19:11 UTC 2026","8","tests","API тесты для сущностей","TestEntityApiPositive","","","Удаление сущности","Проверка успешного удаления сущности"
+"passed","Tue Apr 28 09:19:11 UTC 2026","Tue Apr 28 09:19:11 UTC 2026","5","tests","API тесты для сущностей","TestEntityApiPositive","","","Обновление сущности","Проверка успешного обновления сущности"
+"passed","Tue Apr 28 09:19:11 UTC 2026","Tue Apr 28 09:19:11 UTC 2026","3","tests","API тесты для сущностей","TestEntityApiPositive","","","Получение сущности по ID","Проверка успешного получения сущности по её идентификатору"
