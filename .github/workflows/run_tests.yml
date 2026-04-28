@@ -90,5 +90,5 @@ jobs:
       - name: Stop services
         if: always()
         run: |
-          cd test-service
+          cd simbirsoft_sdet_project
           docker compose down
