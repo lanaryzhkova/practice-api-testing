@@ -27,13 +27,13 @@ jobs:
 
       - name: Clone test-service repository
         run: |
-          git clone https://github.com/sun6r0/test-service.git test-service
+          git clone https://github.com/bondarenkokate73/simbirsoft_sdet_project.git
 
       - name: Start services with Docker Compose
         run: |
-          cd test-service
+          cd simbirsoft_sdet_project
           docker compose up -d --build
-          sleep 20  # Даём время на запуск контейнеров
+          sleep 20
 
       - name: Wait for API to be ready
         run: |
