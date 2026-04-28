@@ -42,7 +42,7 @@ class TestEntityApiPositive:
     def test_create_entity(self, api_helper: ApiHelper):
         """Функция тестирования создания сущности"""
         with allure.step("Отправка запроса на создание сущности"):
-            entity = api_helper.create_entity(CREATE_ENTITY_DATA)
+            entity = api_helper.create_entity
         
         with allure.step("Проверка ответа"):
             assert isinstance(entity, Entity)
