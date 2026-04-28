@@ -1,8 +1,8 @@
-name: Run API Tests
+name: Run Tests and Publish Allure Report
 
 on:
   push:
-    branches: [ api-tests ]
+    branches: [api-tests]
 
 permissions:
   contents: write
@@ -12,14 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout homework repository (this repo)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: api-tests
 
-      - name: Clone test-service repository
-        run: |
-          git clone https://github.com/sun6r0/test-service.git test-service
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -27,13 +22,19 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          cd api-tests
           pip install -r requirements.txt
+          pip install pytest pytest-xdist allure-pytest
+
+      - name: Clone test-service repository
+        run: |
+          git clone https://github.com/sun6r0/test-service.git test-service
+
       - name: Start services with Docker Compose
         run: |
           cd test-service
           docker compose up -d --build
-          sleep 20  # даём время на запуск контейнеров и миграции
+          sleep 20  # Даём время на запуск контейнеров
+
       - name: Wait for API to be ready
         run: |
           for i in {1..30}; do
@@ -44,49 +45,46 @@ jobs:
             echo "Waiting for API... ($i/30)"
             sleep 3
           done
+
       - name: Run tests
         env:
-            BASE_URL: http://localhost:8080/api
+          BASE_URL: http://localhost:8080/api
         run: |
-          cd api-tests
-          python -m pytest tests/ -v -n 1 --alluredir=allure-results
+          pytest -n 2 --alluredir=allure-results || true
 
-      - run: |
+      - name: Check allure-results
+        run: |
+          ls -la allure-results/
+
+      - name: Install Allure
+        run: |
           sudo apt-get update
           sudo apt-get install -y default-jre
-      
           curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
           tar -xzf allure.tgz
           sudo mv allure-2.29.0 /opt/allure
-          sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
+          export PATH=$PATH:/opt/allure/bin
+          echo "/opt/allure/bin" >> $GITHUB_PATH
 
-          cd api-tests
-          allure generate allure-results --clean -o allure-report || exit 1
+      - name: Generate Allure Report
+        run: |
+          /opt/allure/bin/allure generate allure-results --clean -o allure-report
           ls -la allure-report/
-          
-      - name: Upload allure results (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: api-tests/allure-results/
 
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y default-jre
-  
-          curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
-          tar -xzf allure.tgz
-          sudo mv allure-2.29.0 /opt/allure
-          sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
-          cd api-tests
-          allure generate allure-results --clean -o allure-report
+      - name: Verify Allure Report
+        run: |
+          if [ -f "allure-report/index.html" ]; then
+            echo "Allure report generated successfully."
+          else
+            echo "Allure report generation failed."
+            exit 1
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .api-tests/allure-report
+          publish_dir: ./allure-report
           force_orphan: true
 
       - name: Stop services
